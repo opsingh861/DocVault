@@ -1,7 +1,0 @@
-[2025-03-02 20:21:01] ERROR: Response: GET /sdfs - Status: 404 - Duration: 5ms
-[2025-03-02 20:21:31] ERROR: Response: POST /login - Status: 401 - Duration: 146ms
-[2025-03-02 20:22:59] ERROR: Response: POST /register - Status: 409 - Duration: 13ms
-[2025-03-02 20:27:21] ERROR: Registration failed: Username already exists
-[2025-03-02 20:27:21] ERROR: Response: POST /register - Status: 409 - Duration: 29ms
-[2025-03-02 20:59:06] ERROR: Login failed: Invalid password
-[2025-03-02 20:59:06] ERROR: Response: POST /login - Status: 401 - Duration: 169ms
