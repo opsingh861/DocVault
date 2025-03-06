@@ -5,6 +5,9 @@ import cookieParser from 'cookie-parser';
 import authRouter from '../src/api/auth/auth.routes.js';
 import requestLogger from '../src/middlewares/logging.middleware.js';
 import errorHandler from '../src/middlewares/error.middleware.js';
+import scanRouter from '../src/api/scan/scan.routes.js';
+import matchRouter from '../src/api/match/match.routes.js';
+import { authenticateUser } from '../src/middlewares/auth.middleware.js';
 
 const app = express();
 const SQLiteStoreInstance = SQLiteStore(session);
@@ -24,13 +27,16 @@ app.use(
     })
 );
 
-app.use(express.json());
+// app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(requestLogger);
+app.use(express.json());
 
 // Routes
 app.use('/auth', authRouter);
+app.use('/scan', authenticateUser, scanRouter);
+app.use('/matches', matchRouter);
 
 // Error handling middleware
 app.use(errorHandler);

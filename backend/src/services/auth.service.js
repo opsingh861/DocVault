@@ -23,7 +23,7 @@ const loginUser = async (req, username, password) => {
     return user;
 };
 
-const registerUser = async (req, username, password) => {
+const registerUser = async (req, name, username, password) => {
     // Check if user already exists
     const existingUser = await User.findOne({ where: { username } });
     if (existingUser) {
@@ -35,6 +35,7 @@ const registerUser = async (req, username, password) => {
 
     // Create user
     const user = await User.create({
+        name,
         username,
         password_hashed: passwordHash,
         role: 'user'

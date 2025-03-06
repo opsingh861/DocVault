@@ -4,6 +4,7 @@ const authenticateUser = (req, res, next) => {
     }
 
     req.user = req.session.user;
+    // console.log(req.user);
     next();
 };
 

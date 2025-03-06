@@ -55,3 +55,7 @@ sessions/
 # Ignore uploaded files (if applicable)
 uploads/
 public/uploads/
+
+*.sqlite
+
+database.sqlite

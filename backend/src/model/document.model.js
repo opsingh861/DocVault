@@ -5,6 +5,7 @@ import User from './user.model.js';
 const Document = db.define('Document', {
     document_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     user_id: { type: DataTypes.INTEGER, allowNull: false, references: { model: User, key: 'user_id' } },
+    path: { type: DataTypes.STRING(255) },
     title: { type: DataTypes.STRING(100), allowNull: false },
     content: { type: DataTypes.TEXT, allowNull: false },
     file_size: { type: DataTypes.INTEGER },

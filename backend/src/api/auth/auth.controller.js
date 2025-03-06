@@ -20,16 +20,17 @@ const login = async (req, res) => {
 
 const register = async (req, res) => {
     try {
-        const { username, password } = req.body;
+        const { name, username, password } = req.body;
 
         // Call the service to handle business logic
-        const user = await authService.registerUser(req, username, password);
+        const user = await authService.registerUser(req, name, username, password);
 
         logger.info(`User ${username} registered successfully`);
 
         // Return response to client
         res.status(201).json({
             message: 'User registered successfully',
+            name: user.name,
             username: user.username,
             role: user.role
         });
