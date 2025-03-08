@@ -11,7 +11,6 @@ const CreditRequest = db.define('CreditRequest', {
     status: { type: DataTypes.STRING(20), allowNull: false, defaultValue: 'pending' },
     request_date: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
     response_date: { type: DataTypes.DATE },
-    admin_id: { type: DataTypes.INTEGER, allowNull: false, references: { model: User, key: 'user_id' } },
     admin_notes: { type: DataTypes.TEXT }
 }, {
     tableName: 'credit_requests',

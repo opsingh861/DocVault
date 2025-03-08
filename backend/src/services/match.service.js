@@ -1,51 +1,107 @@
 import { pc, indexName } from "../utils/pineconeSetup.js";
 import Document from "../model/document.model.js";
 import DocumentEmbedding from "../model/documentEmbedding.model.js";
+import MatchResult from "../model/match.model.js";
+import logger from "../utils/logger.js";
 
-export const findSimilarDocumentsService = async (docId) => {
+// Cosine similarity calculation
+function cosineSimilarity(vec1, vec2) {
+    const dotProduct = vec1.reduce((sum, val, i) => sum + val * vec2[i], 0);
+    const normA = Math.sqrt(vec1.reduce((sum, val) => sum + val * val, 0));
+    const normB = Math.sqrt(vec2.reduce((sum, val) => sum + val * val, 0));
+    return dotProduct / (normA * normB);
+}
+
+const findSimilarDocumentsService = async (docId) => {
     try {
+        logger.info(`Searching for similar documents to docId: ${docId}`);
 
-        const doc = await DocumentEmbedding.findOne({
-            where: { document_id: docId },
-        });
+        // Check if results are already cached in the DB
+        const cachedMatches = await MatchResult.findAll({ where: { matched_document_id: docId } });
+
+        if (cachedMatches.length > 0) {
+            logger.info(`Returning cached matches for docId: ${docId}`);
+            return {
+                similar_documents: cachedMatches.map(match => ({
+                    id: match.matched_document_id,
+                    title: match.matched_document_title,
+                    similarity_score: match.similarity_score,
+                }))
+            };
+        }
+
+        // Fetch the document embedding
+        const doc = await DocumentEmbedding.findOne({ where: { document_id: docId } });
+        if (!doc) throw new Error(`Document embedding not found for docId: ${docId}`);
+
         let queryEmbedding;
         try {
             queryEmbedding = Array.isArray(doc.embedding) ? doc.embedding : JSON.parse(doc.embedding);
         } catch (e) {
-            console.error("Embedding retrieval error:", e);
+            logger.error(`Embedding retrieval error for docId ${docId}: ${e.stack}`);
             throw new Error("Failed to process embedding");
         }
 
+        // Query Pinecone
         const index = pc.Index(indexName);
-        const k = 3; // Return top 3 similar docs
-
+        const k = 10; // Increased recall
         const queryResult = await index.query({
             vector: queryEmbedding,
             topK: k,
             includeMetadata: true,
         });
 
-        const similarDocs = (
-            await Promise.all(
-                queryResult.matches.map(async (match) => {
-                    const doc = await Document.findByPk(match.id);
-                    if (match.score < 0.80) return null; // Ignore low similarity scores
+        const similarDocs = [];
 
-                    if (!doc || doc.document_id == docId) return null;
-                    return {
-                        id: doc.document_id,
-                        title: doc.title,
-                        content: doc.content.substring(0, 200),
-                        path: doc.path,
-                        similarity_score: match.score,
-                    };
-                })
-            )
-        ).filter(Boolean);
+        for (const match of queryResult.matches) {
+            if (match.score < 0.80) continue; // Ignore low similarity scores
 
+            const matchedDoc = await Document.findByPk(match.id);
+            if (!matchedDoc || matchedDoc.document_id == docId) continue;
+
+            // Compute cosine similarity
+            const matchedEmbedding = await DocumentEmbedding.findOne({ where: { document_id: matchedDoc.document_id } });
+            if (!matchedEmbedding) continue;
+
+            const matchedEmbeddingVector = JSON.parse(matchedEmbedding.embedding);
+            const cosineSim = cosineSimilarity(queryEmbedding, matchedEmbeddingVector);
+
+            if (cosineSim < 0.80) continue; // Ignore if cosine similarity is too low
+
+            // Store matches in DB
+            const [newMatch] = await MatchResult.findOrCreate({
+                where: { matched_document_id: matchedDoc.document_id },
+                defaults: {
+                    similarity_score: match.score.toFixed(2),
+                    match_type: "pinecone",
+                    matched_document_title: matchedDoc.title
+                }
+            });
+
+            // Insert reverse match (doc2 → doc1)
+            await MatchResult.findOrCreate({
+                where: { matched_document_id: docId },
+                defaults: {
+                    similarity_score: match.score.toFixed(2),
+                    match_type: "pinecone",
+                    matched_document_title: doc.title
+                }
+            });
+
+            // Debug log to check what's being added
+            logger.info(`Added match: ${matchedDoc.document_id} (Title: ${matchedDoc.title}) with score: ${match.score}`);
+
+            similarDocs.push({
+                id: matchedDoc.document_id,
+                title: matchedDoc.title,
+                similarity_score: match.score.toFixed(2),
+            });
+        }
+
+        logger.info(`Returning ${similarDocs.length} similar documents for docId: ${docId}`);
         return { similar_documents: similarDocs };
     } catch (error) {
-        console.error("Error finding similar documents:", error);
+        logger.error(`Error finding similar documents for docId ${docId}: ${error.stack}`);
         throw new Error("Failed to retrieve similar documents");
     }
 };

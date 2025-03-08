@@ -7,7 +7,10 @@ import requestLogger from '../src/middlewares/logging.middleware.js';
 import errorHandler from '../src/middlewares/error.middleware.js';
 import scanRouter from '../src/api/scan/scan.routes.js';
 import matchRouter from '../src/api/match/match.routes.js';
-import { authenticateUser } from '../src/middlewares/auth.middleware.js';
+import creditRouter from '../src/api/credit/creditRequest.routes.js';
+import { authenticateUser, isAdmin } from '../src/middlewares/auth.middleware.js';
+import adminRouter from "../src/api/admin/admin.routes.js";
+import profileRouter from "../src/api/profile/profile.routes.js";
 
 const app = express();
 const SQLiteStoreInstance = SQLiteStore(session);
@@ -15,19 +18,18 @@ const SQLiteStoreInstance = SQLiteStore(session);
 // Session middleware
 app.use(
     session({
-        store: new SQLiteStoreInstance({ db: 'sessions.sqlite' }), // Store sessions in SQLite
-        secret: process.env.SESSION_SECRET || 'supersecret', // Keep secret in env file
+        store: new SQLiteStoreInstance({ db: 'sessions.sqlite' }),
+        secret: process.env.SESSION_SECRET || 'supersecret',
         resave: false,
         saveUninitialized: false,
         cookie: {
             httpOnly: true,
-            secure: false, // Set true if using HTTPS
-            maxAge: 1000 * 60 * 60 * 24 // 1 day
+            secure: false,
+            maxAge: 1000 * 60 * 60 * 24 
         }
     })
 );
 
-// app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(requestLogger);
@@ -36,7 +38,10 @@ app.use(express.json());
 // Routes
 app.use('/auth', authRouter);
 app.use('/scan', authenticateUser, scanRouter);
-app.use('/matches', matchRouter);
+app.use('/matches', authenticateUser, matchRouter);
+app.use('/credits', authenticateUser, creditRouter);
+app.use('/admin', authenticateUser, isAdmin, adminRouter);
+app.use('/profile', authenticateUser, profileRouter);
 
 // Error handling middleware
 app.use(errorHandler);
