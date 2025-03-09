@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DocVault - Scan Document</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+  <header class="bg-blue-600 text-white p-4 flex justify-between items-center">
+    <h1 class="text-3xl">Scan Document</h1>
+    <nav>
+      <a href="dashboard.html" class="mr-4">Dashboard</a>
+      <a href="logout.html" class="mr-4" id="logoutLink">Logout</a>
+    </nav>
+  </header>
+  <main class="p-4">
+    <form id="scanForm" class="mb-4" enctype="multipart/form-data">
+      <div class="mb-4">
+        <label class="block text-gray-700 mb-2">Document Title</label>
+        <input type="text" id="docTitle" class="w-full border rounded p-2" required />
+      </div>
+      <div class="mb-4">
+        <label class="block text-gray-700 mb-2">Upload Text Document</label>
+        <input type="file" id="docFile" accept=".txt" class="mb-4" required />
+      </div>
+      <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded">Scan</button>
+    </form>
+    <div id="scanResult" class="mt-4">
+      <!-- Scan results will be displayed here -->
+    </div>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>
