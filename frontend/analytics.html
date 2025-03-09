@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DocVault - Analytics Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100">
+    <header class="bg-blue-600 text-white p-4 flex justify-between items-center">
+        <h1 class="text-3xl">Analytics Dashboard</h1>
+        <nav>
+            <a href="admin.html" class="mr-4">Admin Dashboard</a>
+            <a href="dashboard.html" class="mr-4">User Dashboard</a>
+            <a href="logout.html" class="mr-4" id="logoutLink">Logout</a>
+        </nav>
+    </header>
+    <main class="p-4">
+        <h2 class="text-2xl mb-4">Scan and Credit Usage Statistics</h2>
+        <div id="analyticsData">
+            <!-- Analytics data will be displayed here -->
+        </div>
+    </main>
+    <script src="script.js"></script>
+</body>
+
+</html>
