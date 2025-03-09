@@ -11,6 +11,7 @@ import creditRouter from '../src/api/credit/creditRequest.routes.js';
 import { authenticateUser, isAdmin } from '../src/middlewares/auth.middleware.js';
 import adminRouter from "../src/api/admin/admin.routes.js";
 import profileRouter from "../src/api/profile/profile.routes.js";
+import resetCreditCron from '../src/utils/resetCreditCron.js';
 
 const app = express();
 const SQLiteStoreInstance = SQLiteStore(session);
@@ -45,5 +46,7 @@ app.use('/profile', authenticateUser, profileRouter);
 
 // Error handling middleware
 app.use(errorHandler);
+
+resetCreditCron();
 
 export default app;
