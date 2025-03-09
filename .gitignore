@@ -23,10 +23,10 @@ pnpm-debug.log
 debug.log
 
 # Database and Sessions
-*.sqlite
-*.sqlite3
-*.db
-*.db-journal
+# *.sqlite
+# *.sqlite3
+# *.db
+# *.db-journal
 sessions/
 
 # Build outputs
@@ -56,6 +56,6 @@ sessions/
 uploads/
 public/uploads/
 
-*.sqlite
+# *.sqlite
 
-database.sqlite
+# database.sqlite

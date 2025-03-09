@@ -2,30 +2,431 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DocVault - Home</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Scanner</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
 </head>
 
-<body class="bg-gray-100">
-    <header class="bg-blue-600 text-white p-4">
-        <h1 class="text-3xl">DocVault</h1>
-    </header>
-    <main class="p-4">
-        <h2 class="text-2xl mb-4">Welcome to DocVault</h2>
-        <p class="mb-4">
-            A self-contained document scanning and matching system with a built-in credit system.
-        </p>
-        <div class="space-x-4">
-            <a href="login.html" class="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded">Login</a>
-            <a href="register.html" class="bg-green-500 hover:bg-green-700 text-white py-2 px-4 rounded">Register</a>
+<body class="bg-gray-50 font-sans antialiased text-gray-900">
+    <div id="toast-container" class="fixed top-4 right-4 z-50"></div>
+
+    <div id="app" class="min-h-screen flex flex-col">
+        <!-- Authentication Section -->
+        <div id="auth-section" class="flex-grow flex items-center justify-center p-4">
+            <div class="auth-container">
+                <div class="auth-tabs flex mb-6">
+                    <button id="login-tab"
+                        class="py-2 flex-1 text-center border-b-2 border-blue-500 text-blue-600 font-medium">Login</button>
+                    <button id="register-tab"
+                        class="py-2 flex-1 text-center border-b-2 border-transparent text-gray-500 font-medium">Register</button>
+                </div>
+
+                <!-- Login Form -->
+                <form id="login-form" class="space-y-4">
+                    <div class="form-group">
+                        <label for="login-username"
+                            class="text-sm font-medium text-gray-700 block mb-1">Username</label>
+                        <input type="text" id="login-username" class="form-input" placeholder="Enter your username"
+                            required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password"
+                            class="text-sm font-medium text-gray-700 block mb-1">Password</label>
+                        <input type="password" id="login-password" class="form-input" placeholder="Enter your password"
+                            required>
+                    </div>
+                    <button type="submit" class="btn-primary w-full">Login</button>
+                </form>
+
+                <!-- Register Form -->
+                <form id="register-form" class="space-y-4 hidden">
+                    <div class="form-group">
+                        <label for="register-name" class="text-sm font-medium text-gray-700 block mb-1">Full
+                            Name</label>
+                        <input type="text" id="register-name" class="form-input" placeholder="Enter your full name"
+                            required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-username"
+                            class="text-sm font-medium text-gray-700 block mb-1">Username</label>
+                        <input type="text" id="register-username" class="form-input" placeholder="Choose a username"
+                            required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password"
+                            class="text-sm font-medium text-gray-700 block mb-1">Password</label>
+                        <input type="password" id="register-password" class="form-input" placeholder="Choose a password"
+                            required>
+                    </div>
+                    <button type="submit" class="btn-primary w-full">Register</button>
+                </form>
+            </div>
         </div>
-    </main>
-    <footer class="bg-gray-200 text-center p-4 mt-4">
-        &copy; 2025 DocVault. All rights reserved.
-    </footer>
-    <script src="script.js"></script>
+
+        <!-- Main Application Section (hidden initially) -->
+        <div id="main-section" class="hidden">
+            <!-- Header Navigation -->
+            <header class="bg-white border-b border-gray-200">
+                <div class="container mx-auto px-4 py-3">
+                    <nav class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <h1 class="text-lg font-semibold">Document Scanner</h1>
+                            <div class="credits-display text-sm">
+                                Credits: <span id="user-credits" class="font-medium">0</span>/<span
+                                    id="user-max-credits" class="text-gray-500">20</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-6">
+                            <nav class="hidden md:flex space-x-6">
+                                <a href="#" class="nav-link" data-page="scan">Scan</a>
+                                <a href="#" class="nav-link" data-page="profile">Profile</a>
+                                <a href="#" class="nav-link" data-page="matches">Matches</a>
+                                <a href="#" class="nav-link admin-only hidden" data-page="admin">Admin</a>
+                                <a href="#" class="nav-link" data-page="analytics">Analytics</a>
+                            </nav>
+                            <div class="flex items-center space-x-3">
+                                <span id="user-name" class="text-sm font-medium hidden md:inline-block"></span>
+                                <button id="logout-btn"
+                                    class="text-sm text-gray-600 hover:text-gray-900">Logout</button>
+                            </div>
+                        </div>
+                    </nav>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <main class="flex-grow container mx-auto px-4 py-6">
+                <!-- Scan Page -->
+                <div id="scan-page" class="page-content">
+                    <div class="page-header">
+                        <h2 class="text-xl font-medium">Scan Document</h2>
+                        <p class="text-sm text-gray-500 mt-1">Upload a text document to scan and find matches</p>
+                    </div>
+
+                    <div class="mt-6">
+                        <form id="scan-form" class="max-w-xl mx-auto">
+                            <div class="form-group mb-4">
+                                <label for="document-title"
+                                    class="text-sm font-medium text-gray-700 block mb-1">Document Title</label>
+                                <input type="text" id="document-title" class="form-input"
+                                    placeholder="Enter a title for your document" required>
+                            </div>
+
+                            <div class="form-group mb-6">
+                                <label class="text-sm font-medium text-gray-700 block mb-1">Document File</label>
+                                <div class="file-upload-container">
+                                    <input type="file" id="document-file" class="hidden" accept=".txt" required>
+                                    <label for="document-file" class="file-upload-label">
+                                        <div class="text-center p-6">
+                                            <svg class="w-10 h-10 mx-auto text-gray-400" fill="none"
+                                                stroke="currentColor" viewBox="0 0 24 24"
+                                                xmlns="http://www.w3.org/2000/svg">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                                                </path>
+                                            </svg>
+                                            <p class="mt-2 text-sm text-gray-500">Click to upload or drag and drop</p>
+                                            <p class="text-xs text-gray-400 mt-1">Text files only (.txt)</p>
+                                        </div>
+                                        <div id="file-name"
+                                            class="hidden text-center p-2 text-sm text-gray-700 bg-gray-50 rounded-b-lg">
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="credit-warning text-sm text-amber-600 mb-4">
+                                <p>Scanning will use 1 credit from your balance.</p>
+                                <p id="no-credits-message" class="hidden mt-1 font-medium">You don't have enough
+                                    credits. Please request more or wait for daily reset.</p>
+                            </div>
+
+                            <button type="submit" id="scan-btn" class="btn-primary w-full">Scan Document</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Profile Page -->
+                <div id="profile-page" class="page-content hidden">
+                    <div class="page-header">
+                        <h2 class="text-xl font-medium">Your Profile</h2>
+                        <p class="text-sm text-gray-500 mt-1">Manage your account and view your activity</p>
+                    </div>
+
+                    <div class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Profile Overview -->
+                        <div class="card col-span-1">
+                            <h3 class="text-lg font-medium mb-4">Account Info</h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500">Username</span>
+                                    <span id="profile-username" class="font-medium"></span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500">Name</span>
+                                    <span id="profile-name" class="font-medium"></span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500">Role</span>
+                                    <span id="profile-role" class="font-medium"></span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500">Credits</span>
+                                    <span><span id="profile-credits" class="font-medium"></span>/<span
+                                            id="profile-max-credits"></span></span>
+                                </div>
+                            </div>
+
+                            <div class="mt-6">
+                                <button id="request-credits-btn" class="btn-secondary w-full">Request More
+                                    Credits</button>
+                            </div>
+                        </div>
+
+                        <!-- Recent Scans -->
+                        <div class="card col-span-1 lg:col-span-2">
+                            <h3 class="text-lg font-medium mb-4">Recent Scans</h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm">
+                                    <thead>
+                                        <tr class="border-b border-gray-200">
+                                            <th class="text-left py-3 font-medium text-gray-600">Document Title</th>
+                                            <th class="text-right py-3 font-medium text-gray-600">Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="scans-list">
+                                        <!-- Scan items will be populated here -->
+                                    </tbody>
+                                </table>
+                                <p id="no-scans-message" class="py-4 text-center text-gray-500 hidden">No scan history
+                                    yet</p>
+                            </div>
+                        </div>
+
+                        <!-- Credit Requests -->
+                        <div class="card col-span-1 lg:col-span-3">
+                            <h3 class="text-lg font-medium mb-4">Credit Request History</h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm">
+                                    <thead>
+                                        <tr class="border-b border-gray-200">
+                                            <th class="text-left py-3 font-medium text-gray-600">Request ID</th>
+                                            <th class="text-left py-3 font-medium text-gray-600">Amount</th>
+                                            <th class="text-left py-3 font-medium text-gray-600">Status</th>
+                                            <th class="text-left py-3 font-medium text-gray-600">Request Date</th>
+                                            <th class="text-left py-3 font-medium text-gray-600">Response Date</th>
+                                            <th class="text-left py-3 font-medium text-gray-600">Admin Notes</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="credit-requests-list">
+                                        <!-- Credit request items will be populated here -->
+                                    </tbody>
+                                </table>
+                                <p id="no-requests-message" class="py-4 text-center text-gray-500 hidden">No credit
+                                    requests yet</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Matches Page -->
+                <div id="matches-page" class="page-content hidden">
+                    <div class="page-header">
+                        <h2 class="text-xl font-medium">Document Matches</h2>
+                        <p class="text-sm text-gray-500 mt-1">View similar documents for your recent scan</p>
+                    </div>
+
+                    <div class="mt-6">
+                        <div id="no-document-scanned" class="text-center py-8">
+                            <p class="text-gray-500">Please scan a document first to see matches</p>
+                            <button id="go-to-scan-btn" class="btn-secondary mt-4">Go to Scan</button>
+                        </div>
+
+                        <div id="matches-results" class="hidden">
+                            <h3 class="text-lg font-medium mb-4">Similar Documents</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="similar-documents">
+                                <!-- Similar document cards will be populated here -->
+                            </div>
+                            <p id="no-matches-message" class="py-4 text-center text-gray-500 hidden">No similar
+                                documents found</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Page -->
+                <div id="admin-page" class="page-content hidden">
+                    <div class="page-header">
+                        <h2 class="text-xl font-medium">Admin Dashboard</h2>
+                        <p class="text-sm text-gray-500 mt-1">Manage user credit requests</p>
+                    </div>
+
+                    <div class="mt-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-medium">Credit Requests</h3>
+                            <div class="flex space-x-2">
+                                <button class="btn-filter" data-status="all">All</button>
+                                <button class="btn-filter" data-status="pending">Pending</button>
+                                <button class="btn-filter" data-status="approved">Approved</button>
+                                <button class="btn-filter" data-status="denied">Denied</button>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-gray-200">
+                                        <th class="text-left py-3 font-medium text-gray-600">Request ID</th>
+                                        <th class="text-left py-3 font-medium text-gray-600">User ID</th>
+                                        <th class="text-left py-3 font-medium text-gray-600">Amount</th>
+                                        <th class="text-left py-3 font-medium text-gray-600">Reason</th>
+                                        <th class="text-left py-3 font-medium text-gray-600">Status</th>
+                                        <th class="text-left py-3 font-medium text-gray-600">Date</th>
+                                        <th class="text-left py-3 font-medium text-gray-600">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-credit-requests">
+                                    <!-- Credit request items will be populated here -->
+                                </tbody>
+                            </table>
+                            <p id="no-admin-requests-message" class="py-4 text-center text-gray-500 hidden">No credit
+                                requests available</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics Page -->
+                <div id="analytics-page" class="page-content hidden">
+                    <div class="page-header">
+                        <h2 class="text-xl font-medium">Analytics Dashboard</h2>
+                        <p class="text-sm text-gray-500 mt-1">View system usage statistics</p>
+                    </div>
+
+                    <div class="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="stat-card">
+                            <div class="text-gray-500 text-sm">Total Scans</div>
+                            <div class="text-2xl font-medium mt-1" id="total-scans">--</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="text-gray-500 text-sm">Today's Scans</div>
+                            <div class="text-2xl font-medium mt-1" id="today-scans">--</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="text-gray-500 text-sm">Credits Used</div>
+                            <div class="text-2xl font-medium mt-1" id="credits-used">--</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="text-gray-500 text-sm">Active Users</div>
+                            <div class="text-2xl font-medium mt-1" id="active-users">--</div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="card">
+                            <h3 class="text-lg font-medium mb-4">Recent Activity</h3>
+                            <div class="analytics-chart" id="activity-chart">
+                                <div class="analytics-placeholder">
+                                    <p class="text-gray-500 text-center py-10">Activity data will be displayed here</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h3 class="text-lg font-medium mb-4">Credit Usage</h3>
+                            <div class="analytics-chart" id="credit-chart">
+                                <div class="analytics-placeholder">
+                                    <p class="text-gray-500 text-center py-10">Credit usage data will be displayed here
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden flex items-center justify-center">
+        <!-- Request Credits Modal -->
+        <div id="request-credits-modal" class="modal">
+            <div class="modal-header">
+                <h3 class="text-lg font-medium">Request More Credits</h3>
+                <button class="modal-close">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="request-credits-form" class="space-y-4">
+                    <div class="form-group">
+                        <label for="credit-amount" class="text-sm font-medium text-gray-700 block mb-1">Credit
+                            Amount</label>
+                        <input type="number" id="credit-amount" class="form-input" min="1" value="10" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="credit-reason" class="text-sm font-medium text-gray-700 block mb-1">Reason for
+                            Request</label>
+                        <textarea id="credit-reason" class="form-textarea" rows="3"
+                            placeholder="Explain why you need additional credits" required></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary w-full">Submit Request</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Admin Response Modal -->
+        <div id="admin-response-modal" class="modal">
+            <div class="modal-header">
+                <h3 class="text-lg font-medium">Respond to Credit Request</h3>
+                <button class="modal-close">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="admin-response-form" class="space-y-4">
+                    <input type="hidden" id="credit-request-id">
+                    <div class="request-details mb-4 p-3 bg-gray-50 rounded">
+                        <div class="grid grid-cols-2 gap-2 text-sm">
+                            <div class="text-gray-500">User ID:</div>
+                            <div id="modal-user-id" class="font-medium">--</div>
+                            <div class="text-gray-500">Requested Amount:</div>
+                            <div id="modal-requested-amount" class="font-medium">--</div>
+                            <div class="text-gray-500">Reason:</div>
+                            <div id="modal-reason" class="font-medium">--</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="response-status"
+                            class="text-sm font-medium text-gray-700 block mb-1">Response</label>
+                        <select id="response-status" class="form-select">
+                            <option value="approved">Approve</option>
+                            <option value="denied">Deny</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="granted-amount" class="text-sm font-medium text-gray-700 block mb-1">Grant
+                            Amount</label>
+                        <input type="number" id="granted-amount" class="form-input" min="0" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="admin-notes" class="text-sm font-medium text-gray-700 block mb-1">Notes</label>
+                        <textarea id="admin-notes" class="form-textarea" rows="3" placeholder="Add notes for the user"
+                            required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-primary w-full">Submit Response</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script src="auth.js"></script>
+    <script src="scan.js"></script>
+    <script src="profile.js"></script>
+    <script src="admin.js"></script>
+    <script src="analytics.js"></script>
 </body>
 
 </html>

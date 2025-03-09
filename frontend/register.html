@@ -1,40 +1,184 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DocVault - Register</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="utf-8">
+    <title>Register Form | CodeLab</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css?family=Poppins:400,500,600,700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        html,
+        body {
+            display: grid;
+            height: 100%;
+            width: 100%;
+            place-items: center;
+            background: #f2f2f2;
+        }
+
+        .wrapper {
+            width: 380px;
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0px 15px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .wrapper .title {
+            font-size: 35px;
+            font-weight: 600;
+            text-align: center;
+            line-height: 100px;
+            color: #fff;
+            user-select: none;
+            border-radius: 15px 15px 0 0;
+            background: linear-gradient(-135deg, #c850c0, #4158d0);
+        }
+
+        .wrapper form {
+            padding: 10px 30px 50px 30px;
+        }
+
+        .wrapper form .field {
+            height: 50px;
+            width: 100%;
+            margin-top: 20px;
+            position: relative;
+        }
+
+        .wrapper form .field input {
+            height: 100%;
+            width: 100%;
+            outline: none;
+            font-size: 17px;
+            padding-left: 20px;
+            border: 1px solid lightgrey;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .wrapper form .field input:focus,
+        form .field input:valid {
+            border-color: #4158d0;
+        }
+
+        .wrapper form .field label {
+            position: absolute;
+            top: 50%;
+            left: 20px;
+            color: #999999;
+            font-weight: 400;
+            font-size: 17px;
+            pointer-events: none;
+            transform: translateY(-50%);
+            transition: all 0.3s ease;
+        }
+
+        form .field input:focus~label,
+        form .field input:valid~label {
+            top: 0%;
+            font-size: 16px;
+            color: #4158d0;
+            background: #fff;
+            transform: translateY(-50%);
+        }
+
+        form .field input[type="submit"] {
+            color: #fff;
+            border: none;
+            padding-left: 0;
+            margin-top: -10px;
+            font-size: 20px;
+            font-weight: 500;
+            cursor: pointer;
+            background: linear-gradient(-135deg, #c850c0, #4158d0);
+            transition: all 0.3s ease;
+        }
+
+        form .field input[type="submit"]:active {
+            transform: scale(0.95);
+        }
+
+        form .login-link {
+            color: #262626;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        form .login-link a {
+            color: #4158d0;
+            text-decoration: none;
+        }
+
+        form .login-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
-<body class="bg-gray-100">
-  <div class="max-w-md mx-auto mt-10 bg-white p-6 rounded shadow">
-    <h2 class="text-2xl mb-4">Register</h2>
-    <form id="registerForm">
-      <div class="mb-4">
-        <label class="block text-gray-700">Name</label>
-        <input type="text" id="regName" class="w-full border rounded p-2" required />
-      </div>
-      <div class="mb-4">
-        <label class="block text-gray-700">Username</label>
-        <input type="text" id="regUsername" class="w-full border rounded p-2" required />
-      </div>
-      <div class="mb-4">
-        <label class="block text-gray-700">Password</label>
-        <input type="password" id="regPassword" class="w-full border rounded p-2" required />
-      </div>
-      <div class="mb-4">
-        <label class="block text-gray-700">Role</label>
-        <select id="regRole" class="w-full border rounded p-2">
-          <option value="user">Regular User</option>
-          <option value="admin">Admin</option>
-        </select>
-      </div>
-      <button type="submit" class="bg-green-500 hover:bg-green-700 text-white py-2 px-4 rounded">Register</button>
-    </form>
-    <p class="mt-4">
-      Already have an account? <a href="login.html" class="text-blue-500">Login here</a>
-    </p>
-  </div>
-  <script src="script.js"></script>
+
+<body>
+    <div class="wrapper">
+        <div class="title">
+            Register
+        </div>
+        <form action="#">
+            <div class="field">
+                <input type="text" required>
+                <label>Full Name</label>
+            </div>
+            <div class="field">
+                <input type="text" required>
+                <label>Username</label>
+            </div>
+            <div class="field">
+                <input type="password" required>
+                <label>Password</label>
+            </div>
+            <div class="field">
+                <input type="submit" value="Register">
+            </div>
+            <div class="login-link">
+                Already a member? <a href="/frontend/login.html">Login now</a>
+            </div>
+        </form>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.querySelector("form");
+
+            form.addEventListener("submit", async function (event) {
+                event.preventDefault();
+
+                const name = document.querySelector("input[name='name']").value;
+                const username = document.querySelector("input[name='username']").value;
+                const password = document.querySelector("input[name='password']").value;
+
+                const response = await fetch("http://localhost:3000/auth/register", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    credentials: "include", // Ensures cookies are sent and received
+                    body: JSON.stringify({ name, username, password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    alert(data.message); // Notify the user
+                    window.location.href = "/frontend/scan.html"; // Redirect to the scan page
+                } else {
+                    const errorData = await response.json();
+                    alert(errorData.message || "Registration failed! Please try again.");
+                }
+            });
+        });
+    </script>
 </body>
+
 </html>

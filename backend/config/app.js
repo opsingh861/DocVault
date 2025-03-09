@@ -12,9 +12,11 @@ import { authenticateUser, isAdmin } from '../src/middlewares/auth.middleware.js
 import adminRouter from "../src/api/admin/admin.routes.js";
 import profileRouter from "../src/api/profile/profile.routes.js";
 import resetCreditCron from '../src/utils/resetCreditCron.js';
+import cors from 'cors';
 
 const app = express();
 const SQLiteStoreInstance = SQLiteStore(session);
+
 
 // Session middleware
 app.use(
@@ -26,11 +28,12 @@ app.use(
         cookie: {
             httpOnly: true,
             secure: false,
-            maxAge: 1000 * 60 * 60 * 24 
+            maxAge: 1000 * 60 * 60 * 24
         }
     })
 );
 
+app.use(cors({ origin: 'http://127.0.0.1:5500', credentials: true }));
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(requestLogger);
