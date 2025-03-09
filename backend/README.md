@@ -74,8 +74,8 @@ backend/
    ```
 
 ## 🔥 API Endpoints
-<!-- - [Contributing](./documentation/apidoc.md) -->
-<iframe src="./documentation/apidoc.md" width="100%" height="500px"></iframe>
+- [Contributing](./documentation/apidoc.md)
+<!-- <iframe src="./documentation/apidoc.md" width="100%" height="500px"></iframe> -->
 
 ## 🛡️ Middleware
 - **Authentication Middleware** → Protects routes from unauthorized access.

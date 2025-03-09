@@ -86,7 +86,7 @@ root/
 - **[Backend Documentation](backend/README.md)**
 - **[Frontend Documentation](frontend/README.md)**
 - **[Database Design](backend/documentation/db.md)**
-- **[API Reference](documentation/apidoc.md)**
+- **[API Reference](backend/documentation/apidoc.md)**
 - **[Postman Documentation](https://documenter.getpostman.com/view/28605239/2sAYdoG7iW)**
 
 ## License
