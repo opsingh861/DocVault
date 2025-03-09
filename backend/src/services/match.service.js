@@ -16,7 +16,6 @@ const findSimilarDocumentsService = async (docId) => {
     try {
         logger.info(`Searching for similar documents to docId: ${docId}`);
 
-        // ✅ Check if results are already cached in the DB
         const cachedMatches = await MatchResult.findAll({ where: { document_id: docId } });
 
         if (cachedMatches.length > 0) {
@@ -30,11 +29,9 @@ const findSimilarDocumentsService = async (docId) => {
             };
         }
 
-        // ✅ Fetch the document embedding
         const doc = await DocumentEmbedding.findOne({ where: { document_id: docId } });
         if (!doc) throw new Error(`Document embedding not found for docId: ${docId}`);
 
-        // ✅ Fetch the actual document details
         const docDetails = await Document.findOne({ where: { document_id: docId } });
         if (!docDetails) throw new Error(`Document not found for docId: ${docId}`);
 
@@ -46,7 +43,6 @@ const findSimilarDocumentsService = async (docId) => {
             throw new Error("Failed to process embedding");
         }
 
-        // ✅ Query Pinecone
         const index = pc.Index(indexName);
         const k = 3;
         const queryResult = await index.query({
@@ -60,11 +56,9 @@ const findSimilarDocumentsService = async (docId) => {
         for (const match of queryResult.matches) {
             if (match.score < 0.80) continue;
 
-            // ✅ Fetch matched document details
             const matchedDoc = await Document.findByPk(match.id);
             if (!matchedDoc || matchedDoc.document_id == docId) continue;
 
-            // ✅ Compute cosine similarity for verification
             const matchedEmbedding = await DocumentEmbedding.findOne({ where: { document_id: matchedDoc.document_id } });
             if (!matchedEmbedding) continue;
 
@@ -72,13 +66,11 @@ const findSimilarDocumentsService = async (docId) => {
             const cosineSim = cosineSimilarity(queryEmbedding, matchedEmbeddingVector);
             if (cosineSim < 0.80) continue;
 
-            // ✅ Ensure matched document title is properly retrieved
             if (!matchedDoc.title) {
                 logger.error(`Document title is missing for document_id: ${matchedDoc.document_id}`);
                 continue; // Skip this match
             }
 
-            // ✅ Store matches in DB (BIDIRECTIONAL)
             await MatchResult.findOrCreate({
                 where: { document_id: docId, matched_document_id: matchedDoc.document_id },
                 defaults: {
@@ -93,7 +85,7 @@ const findSimilarDocumentsService = async (docId) => {
                 defaults: {
                     similarity_score: match.score.toFixed(2),
                     match_type: "pinecone",
-                    matched_document_title: docDetails.title // ✅ Ensure original doc title is stored
+                    matched_document_title: docDetails.title
                 }
             });
 
